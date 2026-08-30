@@ -1,0 +1,1279 @@
+{
+	"info": {
+		"_postman_id": "8f2a1e3b-9d4c-4e5a-b678-1a2b3c4d5e6f",
+		"name": "Telecom Recharge Platform API",
+		"description": "Complete Postman collection for Telecom Recharge Platform (Main Recharge API & Mock Telecom Provider API). Includes all success flows, idempotency/duplicate protection, timeout & reconciliation, error simulations, and BSNL card inventory allocation.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl_main",
+			"value": "http://localhost:5080",
+			"type": "string"
+		},
+		{
+			"key": "baseUrl_provider",
+			"value": "http://localhost:5081",
+			"type": "string"
+		},
+		{
+			"key": "apiKey_main",
+			"value": "mobile2000-secret-api-key-2026",
+			"type": "string"
+		},
+		{
+			"key": "apiKey_provider",
+			"value": "telecom-provider-test-key-2026",
+			"type": "string"
+		},
+		{
+			"key": "lastTransactionId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "lastBatchId",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Main Recharge API - Success Flows",
+			"item": [
+				{
+					"name": "Jio Recharge (₹199 Success)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Recharge is SUCCESS\", function () {",
+									"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");",
+									"    pm.expect(jsonData.operatorName).to.eql(\"Jio\");",
+									"});",
+									"if (jsonData.transactionId) {",
+									"    pm.collectionVariables.set(\"lastTransactionId\", jsonData.transactionId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mobileNumber\": \"9876543210\",\n  \"operatorName\": \"Jio\",\n  \"amount\": 199.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge"
+							]
+						},
+						"description": "Standard instant API recharge for Jio ₹199."
+					},
+					"response": []
+				},
+				{
+					"name": "Airtel Recharge (₹100 Success)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Recharge is SUCCESS\", function () {",
+									"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");",
+									"    pm.expect(jsonData.operatorName).to.eql(\"Airtel\");",
+									"});",
+									"if (jsonData.transactionId) {",
+									"    pm.collectionVariables.set(\"lastTransactionId\", jsonData.transactionId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mobileNumber\": \"9811223344\",\n  \"operatorName\": \"Airtel\",\n  \"amount\": 100.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge"
+							]
+						},
+						"description": "Standard instant API recharge for Airtel ₹100."
+					},
+					"response": []
+				},
+				{
+					"name": "Vi Recharge (₹249 Success)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Recharge is SUCCESS\", function () {",
+									"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");",
+									"    pm.expect(jsonData.operatorName).to.eql(\"Vi\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mobileNumber\": \"9899887766\",\n  \"operatorName\": \"Vi\",\n  \"amount\": 249.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge"
+							]
+						},
+						"description": "Standard instant API recharge for Vodafone Idea (Vi) ₹249."
+					},
+					"response": []
+				},
+				{
+					"name": "BSNL Card/PIN Recharge (₹50 Success)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Recharge is SUCCESS with Card PIN\", function () {",
+									"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");",
+									"    pm.expect(jsonData.cardSerialNumber).to.not.be.null;",
+									"    pm.expect(jsonData.cardPin).to.not.be.null;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mobileNumber\": \"9412345678\",\n  \"operatorName\": \"BSNL\",\n  \"amount\": 50.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge"
+							]
+						},
+						"description": "BSNL card/PIN inventory based recharge claiming card using pessimistic locking."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Idempotency & Duplicate Protection",
+			"item": [
+				{
+					"name": "Step 1: First Request with Specific TxnId",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var customId = 'TXN-DEMO-' + Date.now();",
+									"pm.collectionVariables.set('demoTxnId', customId);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"First request processed by Provider\", function () {",
+									"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");",
+									"    pm.expect(jsonData.transactionId).to.eql(pm.collectionVariables.get('demoTxnId'));",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"transactionId\": \"{{demoTxnId}}\",\n  \"mobileNumber\": \"9876500001\",\n  \"operatorName\": \"Jio\",\n  \"amount\": 199.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge"
+							]
+						},
+						"description": "First request sent to provider and saved in database."
+					},
+					"response": []
+				},
+				{
+					"name": "Step 2: Second Request (Idempotent - Provider NOT called)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Returns idempotent message and does NOT generate second recharge\", function () {",
+									"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");",
+									"    pm.expect(jsonData.transactionId).to.eql(pm.collectionVariables.get('demoTxnId'));",
+									"    pm.expect(jsonData.message).to.include(\"Already recharged\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"transactionId\": \"{{demoTxnId}}\",\n  \"mobileNumber\": \"9876500001\",\n  \"operatorName\": \"Jio\",\n  \"amount\": 199.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge"
+							]
+						},
+						"description": "Second request with same TransactionId returns cached status immediately without calling provider."
+					},
+					"response": []
+				},
+				{
+					"name": "Step 3: Rapid Duplicate (Same Mobile/Amount within 10 mins)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Duplicate guard catches rapid retry without transaction ID\", function () {",
+									"    pm.expect(jsonData.status).to.be.oneOf([\"SUCCESS\", \"PENDING\"]);",
+									"    pm.expect(jsonData.message).to.include(\"Already recharged\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mobileNumber\": \"9876500001\",\n  \"operatorName\": \"Jio\",\n  \"amount\": 199.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge"
+							]
+						},
+						"description": "Duplicate guard catches repeated recharge for same mobile+operator+amount within 10 min window."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Status Enquiry & Polling",
+			"item": [
+				{
+					"name": "Get Transaction Status by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Valid status enquiry response\", function () {",
+									"    pm.expect(jsonData.transactionId).to.not.be.null;",
+									"    pm.expect(jsonData.status).to.be.oneOf([\"NEW\", \"PROCESSING\", \"SUCCESS\", \"FAILED\", \"PENDING\"]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge/status/{{lastTransactionId}}",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge",
+								"status",
+								"{{lastTransactionId}}"
+							]
+						},
+						"description": "Fetch transaction status by ID."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Timeout Simulation & Reconciliation",
+			"item": [
+				{
+					"name": "Trigger Provider Timeout (₹299 Airtel)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Status is PENDING due to provider timeout\", function () {",
+									"    pm.expect(jsonData.status).to.eql(\"PENDING\");",
+									"    pm.expect(jsonData.errorMessage).to.include(\"timed out\");",
+									"});",
+									"if (jsonData.transactionId) {",
+									"    pm.collectionVariables.set(\"pendingTxnId\", jsonData.transactionId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mobileNumber\": \"9876543210\",\n  \"operatorName\": \"Airtel\",\n  \"amount\": 299.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge"
+							]
+						},
+						"description": "Mock provider simulates a 12s delay for ₹299 Airtel, exceeding Main API's 8s HttpClient timeout. Status is set to PENDING."
+					},
+					"response": []
+				},
+				{
+					"name": "Check Status After Reconciliation (Wait 30s)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Pending transaction resolved to SUCCESS\", function () {",
+									"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge/status/{{pendingTxnId}}",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge",
+								"status",
+								"{{pendingTxnId}}"
+							]
+						},
+						"description": "After 30s background worker reconciles the transaction with provider."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Error Handling & Validation",
+			"item": [
+				{
+					"name": "401 Missing API Key",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401 Unauthorized\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Error code is AUTHENTICATION_FAILED\", function () {",
+									"    pm.expect(jsonData.error).to.eql(\"AUTHENTICATION_FAILED\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mobileNumber\": \"9876543210\",\n  \"operatorName\": \"Jio\",\n  \"amount\": 199.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge"
+							]
+						},
+						"description": "Request without X-API-Key header returns 401 Unauthorized."
+					},
+					"response": []
+				},
+				{
+					"name": "400 Invalid Mobile Number",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400 Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Error code is INVALID_MOBILE_NUMBER\", function () {",
+									"    pm.expect(jsonData.error).to.eql(\"INVALID_MOBILE_NUMBER\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mobileNumber\": \"12345\",\n  \"operatorName\": \"Jio\",\n  \"amount\": 199.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge"
+							]
+						},
+						"description": "Non-10 digit mobile number returns 400 Bad Request."
+					},
+					"response": []
+				},
+				{
+					"name": "400 Negative Amount",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400 Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Error code is INVALID_AMOUNT\", function () {",
+									"    pm.expect(jsonData.error).to.eql(\"INVALID_AMOUNT\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mobileNumber\": \"9876543210\",\n  \"operatorName\": \"Jio\",\n  \"amount\": -100.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge"
+							]
+						},
+						"description": "Negative recharge amount returns 400 Bad Request."
+					},
+					"response": []
+				},
+				{
+					"name": "400 Unsupported Operator",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400 Bad Request\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Error code is UNSUPPORTED_OPERATOR\", function () {",
+									"    pm.expect(jsonData.error).to.eql(\"UNSUPPORTED_OPERATOR\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mobileNumber\": \"9876543210\",\n  \"operatorName\": \"Docomo\",\n  \"amount\": 100.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge"
+							]
+						},
+						"description": "Unsupported operator name returns 400 Bad Request."
+					},
+					"response": []
+				},
+				{
+					"name": "Provider HTTP 500 Simulation (₹500 Airtel)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 OK with FAILED state\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Transaction marked as FAILED with error message\", function () {",
+									"    pm.expect(jsonData.status).to.eql(\"FAILED\");",
+									"    pm.expect(jsonData.errorMessage).to.include(\"temporarily unavailable\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"mobileNumber\": \"9876543210\",\n  \"operatorName\": \"Airtel\",\n  \"amount\": 500.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/recharge",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"recharge"
+							]
+						},
+						"description": "Airtel ₹500 triggers simulated 500 internal error on mock provider."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. Mock Telecom Provider Direct Endpoints",
+			"item": [
+				{
+					"name": "Get Simulation Rules (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl_provider}}/api/provider/recharge/rules",
+							"host": [
+								"{{baseUrl_provider}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"recharge",
+								"rules"
+							]
+						},
+						"description": "Public documentation of mock provider simulation behaviors."
+					},
+					"response": []
+				},
+				{
+					"name": "Direct Provider Recharge",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Direct provider response is SUCCESS\", function () {",
+									"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Provider-API-Key",
+								"value": "{{apiKey_provider}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"referenceId\": \"MOCK-DIRECT-001\",\n  \"mobileNumber\": \"9876543210\",\n  \"operator\": \"Jio\",\n  \"amount\": 199.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_provider}}/api/provider/recharge",
+							"host": [
+								"{{baseUrl_provider}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"recharge"
+							]
+						},
+						"description": "Direct call to Mock Telecom Provider with X-Provider-API-Key."
+					},
+					"response": []
+				},
+				{
+					"name": "Direct Provider Status Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Provider-API-Key",
+								"value": "{{apiKey_provider}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl_provider}}/api/provider/recharge/status/MOCK-DIRECT-001",
+							"host": [
+								"{{baseUrl_provider}}"
+							],
+							"path": [
+								"api",
+								"provider",
+								"recharge",
+								"status",
+								"MOCK-DIRECT-001"
+							]
+						},
+						"description": "Direct status check on Mock Telecom Provider."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "7. Card & Voucher Import API",
+			"item": [
+				{
+					"name": "1. Import Cards via Raw CSV Text (Success)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Voucher cards imported successfully\", function () {",
+									"    pm.expect(jsonData.status).to.be.oneOf([\"COMPLETED\", \"PARTIAL_SUCCESS\"]);",
+									"    pm.expect(jsonData.successfulRows).to.be.above(0);",
+									"});",
+									"if (jsonData.batchId) {",
+									"    pm.collectionVariables.set(\"lastBatchId\", jsonData.batchId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fileName\": \"initial_stock_2027.csv\",\n  \"csvContent\": \"CardNumber,SerialNumber,Operator,Denomination,ExpiryDate\\n987654321001,SER10001,Airtel,100,2027-12-31\\n987654321002,SER10002,Jio,199,2027-12-31\\n987654321003,SER10003,Vi,249,2027-12-31\\n987654321004,SER10004,BSNL,50,2027-12-31\\n987654321005,SER10005,BSNL,100,2027-12-31\",\n  \"importedBy\": \"ADMIN_PORTAL\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/cards/import/raw",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"cards",
+								"import",
+								"raw"
+							]
+						},
+						"description": "Imports prepaid vouchers/cards directly via raw CSV string payload."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Import Cards with Validation Errors (Partial Success)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200 OK\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Records failed rows in error list\", function () {",
+									"    pm.expect(jsonData.errors.length).to.be.above(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fileName\": \"invalid_rows_test.csv\",\n  \"csvContent\": \"CardNumber,SerialNumber,Operator,Denomination,ExpiryDate\\n987654999001,SER99001,Jio,199,2027-12-31\\n987654999002,SER99002,UnknownOperator,199,2027-12-31\\n987654999003,SER99003,Airtel,-50,2027-12-31\\n987654999004,SER99004,Vi,249,2020-01-01\",\n  \"importedBy\": \"TEST_RUNNER\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl_main}}/api/cards/import/raw",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"cards",
+								"import",
+								"raw"
+							]
+						},
+						"description": "Tests validation filters: unknown operator, negative denomination, and past expiration date."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get Card Import Batches List",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Returns array of batches\", function () {",
+									"    pm.expect(Array.isArray(jsonData)).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl_main}}/api/cards/batches?page=1&pageSize=20",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"cards",
+								"batches"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Retrieves the list of card import batches."
+					},
+					"response": []
+				},
+				{
+					"name": "4. Get Batch Details & Error Logs by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Returns batch header and error list\", function () {",
+									"    pm.expect(jsonData.batchId).to.not.be.null;",
+									"    pm.expect(jsonData.totalRows).to.be.at.least(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl_main}}/api/cards/batches/{{lastBatchId}}",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"cards",
+								"batches",
+								"{{lastBatchId}}"
+							]
+						},
+						"description": "Retrieves full details and error rows for a specific batch."
+					},
+					"response": []
+				},
+				{
+					"name": "5. Get Card Inventory Stock Summary",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Returns inventory breakdown\", function () {",
+									"    pm.expect(Array.isArray(jsonData)).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl_main}}/api/cards/inventory",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"cards",
+								"inventory"
+							]
+						},
+						"description": "Aggregates available voucher stock grouped by operator and denomination."
+					},
+					"response": []
+				},
+				{
+					"name": "6. Download CSV Import Template",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Content-Type is text/csv\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/csv\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl_main}}/api/cards/template/csv",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"cards",
+								"template",
+								"csv"
+							]
+						},
+						"description": "Downloads the official CSV template for card imports."
+					},
+					"response": []
+				},
+				{
+					"name": "7. Export All Voucher Cards CSV",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Content-Type is text/csv\", function () {",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/csv\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey_main}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl_main}}/api/cards/export/csv",
+							"host": [
+								"{{baseUrl_main}}"
+							],
+							"path": [
+								"api",
+								"cards",
+								"export",
+								"csv"
+							]
+						},
+						"description": "Exports all voucher card inventory records as a CSV download."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
