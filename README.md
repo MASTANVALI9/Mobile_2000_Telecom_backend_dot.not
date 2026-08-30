@@ -26,7 +26,7 @@ graph TD
     
     subgraph Background Reconciliation
         Worker[ReconciliationWorker] -->|Poll PENDING txns| DB
-        Worker -->|GET status/{refId}| Provider
+        Worker -->|"GET status/:referenceId"| Provider
         Worker -->|Update SUCCESS / FAILED| DB
     end
 ```
