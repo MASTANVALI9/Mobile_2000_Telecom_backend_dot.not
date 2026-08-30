@@ -1,308 +1,399 @@
-# Postman API Testing Guide
+# Postman API Testing
 
-This guide explains how to test all API endpoints using Postman or Swagger UI, including authentication headers, error handling scenarios, and reconciliation flows.
+Use Postman or Swagger to test the APIs.
 
----
+## 1. API Keys
 
-## 1. Authentication Headers
+Both APIs use API key authentication.
 
-Both APIs are protected with API Key authentication:
+| API               | Port | Header               |
+| ----------------- | ---: | -------------------- |
+| Main Recharge API | 5080 | `X-API-Key`          |
+| Mock Telecom API  | 5081 | `X-Provider-API-Key` |
 
-| API | Port | Header Name | Configured Test Key |
-|-----|------|-------------|---------------------|
-| **Main Recharge API** | 5080 | `X-API-Key` | `mobile2000-secret-api-key-2026` |
-| **Mock Telecom Provider API** | 5081 | `X-Provider-API-Key` | `telecom-provider-test-key-2026` |
+Test keys are stored in `appsettings.json` and can also be supplied through environment variables.
 
-> [!NOTE]
-> All API keys and secrets are loaded from `appsettings.json` (or environment variables) and are never logged or hardcoded.
+> Do not use real credentials in the repository.
 
----
+## 2. Start the APIs
 
-## 2. How to Start the Servers
+Open two terminals.
 
-Open two separate terminals:
+**Mock Telecom API**
 
 ```bash
-# Terminal 1: Start Mock Telecom Provider (Port 5081)
 dotnet run --project src/MockTelecomApi
+```
 
-# Terminal 2: Start Main Recharge API (Port 5080)
+**Main Recharge API**
+
+```bash
 dotnet run --project src/MainRechargeApi
 ```
 
-- **Main API Swagger**: http://localhost:5080/swagger (Click **Authorize** and enter `mobile2000-secret-api-key-2026`)
-- **Mock Provider Swagger**: http://localhost:5081/swagger (Click **Authorize** and enter `telecom-provider-test-key-2026`)
+Swagger:
+
+* Main API: `http://localhost:5080/swagger`
+* Mock Provider: `http://localhost:5081/swagger`
+
+Add the required API key using the **Authorize** button in Swagger.
 
 ---
 
-## 3. Step-by-Step Testing Guide
+## 3. Main API Tests
 
-### Test Case 1: Successful Recharge (Jio / Airtel / Vi)
-- **Method**: `POST`
-- **URL**: `http://localhost:5080/api/recharge`
-- **Headers**:
-  - `Content-Type`: `application/json`
-  - `X-API-Key`: `mobile2000-secret-api-key-2026`
-- **Body**:
-  ```json
-  {
-    "mobileNumber": "9876543210",
-    "operatorName": "Jio",
-    "amount": 100.00
-  }
-  ```
-- **Expected Response (`200 OK`)**:
-  ```json
-  {
-    "transactionId": "TXN-20260830-XXXX",
-    "mobileNumber": "9876543210",
-    "operatorName": "Jio",
-    "amount": 100.00,
-    "status": "SUCCESS",
-    "providerReference": "MOCK-REF-XXXX",
-    "errorMessage": null
-  }
-  ```
+### Test 1 — Successful Recharge
 
----
+**POST**
 
-### Test Case 2: Check Transaction Status
-- **Method**: `GET`
-- **URL**: `http://localhost:5080/api/recharge/status/TXN-20260830-XXXX`
-- **Headers**:
-  - `X-API-Key`: `mobile2000-secret-api-key-2026`
-- **Expected Response (`200 OK`)**:
-  ```json
-  {
-    "transactionId": "TXN-20260830-XXXX",
-    "mobileNumber": "9876543210",
-    "operatorName": "Jio",
-    "amount": 100.00,
-    "status": "SUCCESS",
-    "providerReference": "MOCK-REF-XXXX",
-    "errorMessage": null
-  }
-  ```
+`http://localhost:5080/api/recharge`
+
+Headers:
+
+```text
+Content-Type: application/json
+X-API-Key: <main-api-key>
+```
+
+Body:
+
+```json
+{
+  "mobileNumber": "9876543210",
+  "operatorName": "Jio",
+  "amount": 100.00
+}
+```
+
+Expected:
+
+* `200 OK`
+* Transaction is created.
+* Provider request is recorded.
+* Recharge status is `SUCCESS`.
 
 ---
 
-### Test Case 3: Authentication Failure (401 Unauthorized)
-- **Method**: `POST`
-- **URL**: `http://localhost:5080/api/recharge`
-- **Headers**:
-  - `Content-Type`: `application/json`
-  - *(Omit `X-API-Key` or provide an invalid key)*
-- **Body**:
-  ```json
-  {
-    "mobileNumber": "9876543210",
-    "operatorName": "Jio",
-    "amount": 100.00
-  }
-  ```
-- **Expected Response (`401 Unauthorized`)**:
-  ```json
-  {
-    "statusCode": 401,
-    "error": "AUTHENTICATION_FAILED",
-    "message": "Missing 'X-API-Key' authentication header.",
-    "timestamp": "2026-08-30T17:05:00Z"
-  }
-  ```
+### Test 2 — Check Transaction Status
+
+**GET**
+
+`http://localhost:5080/api/recharge/status/{transactionId}`
+
+Header:
+
+```text
+X-API-Key: <main-api-key>
+```
+
+Expected:
+
+* `200 OK`
+* Current transaction details are returned.
 
 ---
 
-### Test Case 4: Invalid Mobile Number (400 Bad Request)
-- **Method**: `POST`
-- **URL**: `http://localhost:5080/api/recharge`
-- **Headers**:
-  - `Content-Type`: `application/json`
-  - `X-API-Key`: `mobile2000-secret-api-key-2026`
-- **Body**:
-  ```json
-  {
-    "mobileNumber": "98765",
-    "operatorName": "Jio",
-    "amount": 100.00
-  }
-  ```
-- **Expected Response (`400 Bad Request`)**:
-  ```json
-  {
-    "statusCode": 400,
-    "error": "INVALID_MOBILE_NUMBER",
-    "message": "Mobile number must be exactly 10 digits numeric (e.g. 9876543210).",
-    "timestamp": "2026-08-30T17:05:00Z"
-  }
-  ```
+### Test 3 — Invalid Authentication
+
+Send the recharge request without `X-API-Key`, or use an invalid key.
+
+Expected:
+
+```text
+401 Unauthorized
+```
+
+The recharge should not be processed.
 
 ---
 
-### Test Case 5: Invalid Amount (400 Bad Request)
-- **Method**: `POST`
-- **URL**: `http://localhost:5080/api/recharge`
-- **Headers**:
-  - `Content-Type`: `application/json`
-  - `X-API-Key`: `mobile2000-secret-api-key-2026`
-- **Body**:
-  ```json
-  {
-    "mobileNumber": "9876543210",
-    "operatorName": "Jio",
-    "amount": -50.00
-  }
-  ```
-- **Expected Response (`400 Bad Request`)**:
-  ```json
-  {
-    "statusCode": 400,
-    "error": "INVALID_AMOUNT",
-    "message": "Recharge amount must be greater than zero.",
-    "timestamp": "2026-08-30T17:05:00Z"
-  }
-  ```
+### Test 4 — Invalid Mobile Number
+
+Use:
+
+```json
+{
+  "mobileNumber": "98765",
+  "operatorName": "Jio",
+  "amount": 100.00
+}
+```
+
+Expected:
+
+```text
+400 Bad Request
+```
+
+The provider should not be called.
 
 ---
 
-### Test Case 6: Unsupported Operator (400 Bad Request)
-- **Method**: `POST`
-- **URL**: `http://localhost:5080/api/recharge`
-- **Headers**:
-  - `Content-Type`: `application/json`
-  - `X-API-Key`: `mobile2000-secret-api-key-2026`
-- **Body**:
-  ```json
-  {
-    "mobileNumber": "9876543210",
-    "operatorName": "Docomo",
-    "amount": 100.00
-  }
-  ```
-- **Expected Response (`400 Bad Request`)**:
-  ```json
-  {
-    "statusCode": 400,
-    "error": "UNSUPPORTED_OPERATOR",
-    "message": "Operator 'Docomo' is not supported or is currently inactive. Supported operators: Jio, Airtel, Vi, BSNL.",
-    "timestamp": "2026-08-30T17:05:00Z"
-  }
-  ```
+### Test 5 — Invalid Amount
+
+Use:
+
+```json
+{
+  "mobileNumber": "9876543210",
+  "operatorName": "Jio",
+  "amount": -50.00
+}
+```
+
+Expected:
+
+```text
+400 Bad Request
+```
 
 ---
 
-### Test Case 7: Provider HTTP 500 Simulation
-- **Method**: `POST`
-- **URL**: `http://localhost:5080/api/recharge`
-- **Headers**:
-  - `Content-Type`: `application/json`
-  - `X-API-Key`: `mobile2000-secret-api-key-2026`
-- **Body**:
-  ```json
-  {
-    "mobileNumber": "9876543210",
-    "operatorName": "Airtel",
-    "amount": 500.00
-  }
-  ```
-- **Expected Response (`200 OK`)**:
-  ```json
-  {
-    "transactionId": "TXN-20260830-XXXX",
-    "mobileNumber": "9876543210",
-    "operatorName": "Airtel",
-    "amount": 500.00,
-    "status": "FAILED",
-    "errorMessage": "Internal server error. The provider system is temporarily unavailable."
-  }
-  ```
+### Test 6 — Unsupported Operator
+
+Use:
+
+```json
+{
+  "mobileNumber": "9876543210",
+  "operatorName": "Docomo",
+  "amount": 100.00
+}
+```
+
+Expected:
+
+```text
+400 Bad Request
+```
+
+Supported operators:
+
+* Jio
+* Airtel
+* Vi
+* BSNL
 
 ---
 
-### Test Case 8: Provider Timeout & Background Reconciliation
-- **Method**: `POST`
-- **URL**: `http://localhost:5080/api/recharge`
-- **Headers**:
-  - `Content-Type`: `application/json`
-  - `X-API-Key`: `mobile2000-secret-api-key-2026`
-- **Body**:
-  ```json
-  {
-    "mobileNumber": "9876543210",
-    "operatorName": "Airtel",
-    "amount": 299.00
-  }
-  ```
-- **Immediate Response (`200 OK`)**:
-  ```json
-  {
-    "transactionId": "TXN-20260830-XXXX",
-    "mobileNumber": "9876543210",
-    "operatorName": "Airtel",
-    "amount": 299.00,
-    "status": "PENDING",
-    "errorMessage": "Provider connection timed out. Your recharge is being verified and will be updated shortly."
-  }
-  ```
-- **Reconciliation**:
-  Wait 30 seconds for the `ReconciliationWorker` to poll the provider.
-  Query `GET http://localhost:5080/api/recharge/status/TXN-20260830-XXXX` to see the updated status: `SUCCESS`.
+### Test 7 — Provider Error
+
+Use the provider test amount that triggers an HTTP 500 response.
+
+Example:
+
+```json
+{
+  "mobileNumber": "9876543210",
+  "operatorName": "Airtel",
+  "amount": 500.00
+}
+```
+
+Expected:
+
+* Provider returns an error.
+* Main API handles it without exposing internal details.
+* Transaction is stored with the appropriate failed status.
 
 ---
 
-### Test Case 9: Duplicate Recharge Prevention
-- Send the same request twice within 10 minutes (or with the same `transactionId`).
-- The second request returns the existing transaction with an informative message: `"Already recharged! This pack will activate after completion of the first pack."`
+### Test 8 — Provider Timeout
+
+Use the amount configured for the timeout scenario.
+
+Example:
+
+```json
+{
+  "mobileNumber": "9876543210",
+  "operatorName": "Airtel",
+  "amount": 299.00
+}
+```
+
+Expected:
+
+1. Provider request is sent.
+2. Provider response times out.
+3. Transaction is stored as `PENDING`.
+4. The recharge is **not sent again**.
+5. Background reconciliation checks the provider status.
+6. Transaction is eventually updated to the actual provider result.
+
+Check the transaction again using:
+
+```text
+GET /api/recharge/status/{transactionId}
+```
 
 ---
 
-### Test Case 10: CSV Card / Voucher Import (Feature 18)
-- **Method**: `POST`
-- **URL**: `http://localhost:5080/api/cards/import/raw`
-- **Headers**:
-  - `Content-Type`: `application/json`
-  - `X-API-Key`: `mobile2000-secret-api-key-2026`
-- **Body**:
-  ```json
-  {
-    "fileName": "batch_import_2027.csv",
-    "csvContent": "CardNumber,SerialNumber,Operator,Denomination,ExpiryDate\n987654321001,SER10001,Airtel,100,2027-12-31\n987654321002,SER10002,Jio,199,2027-12-31\n987654321003,SER10003,Vi,249,2027-12-31\n987654321004,SER10004,BSNL,50,2027-12-31\n987654321005,SER10005,BSNL,100,2027-12-31",
-    "importedBy": "ADMIN_USER"
-  }
-  ```
-- **Expected Response (`200 OK`)**:
-  ```json
-  {
-    "batchId": 1,
-    "fileName": "batch_import_2027.csv",
-    "totalRows": 5,
-    "successfulRows": 5,
-    "failedRows": 0,
-    "status": "COMPLETED",
-    "importedBy": "ADMIN_USER",
-    "importedDate": "2026-08-30T16:50:00Z",
-    "message": "Successfully imported all 5 voucher cards.",
-    "errors": []
-  }
-  ```
+### Test 9 — Duplicate Recharge
+
+Send the same transaction again.
+
+Expected:
+
+* Existing transaction is returned.
+* A second recharge is not created.
+* The provider is not called again.
+
+This should also be safe when two identical requests arrive at nearly the same time.
 
 ---
 
-### Test Case 11: Voucher Inventory & Batch Querying
-- **Batches Query**: `GET http://localhost:5080/api/cards/batches?page=1&pageSize=20`
-  - Header: `X-API-Key: mobile2000-secret-api-key-2026`
-  - Returns paginated list of import batches with total, successful, and failed counts.
-- **Batch Details Query**: `GET http://localhost:5080/api/cards/batches/1`
-  - Returns full batch header and individual row error details.
-- **Voucher Stock Summary**: `GET http://localhost:5080/api/cards/inventory`
-  - Returns card counts grouped by operator, denomination, and availability status (`AVAILABLE`, `USED`, `EXPIRED`).
+## 4. Card Import Tests
+
+### Test 10 — Import Cards
+
+**POST**
+
+`http://localhost:5080/api/cards/import/raw`
+
+Headers:
+
+```text
+Content-Type: application/json
+X-API-Key: <main-api-key>
+```
+
+Example:
+
+```json
+{
+  "fileName": "batch_import_2027.csv",
+  "csvContent": "CardNumber,SerialNumber,Operator,Denomination,ExpiryDate\n987654321001,SER10001,Airtel,100,2027-12-31\n987654321002,SER10002,Jio,199,2027-12-31\n987654321003,SER10003,Vi,249,2027-12-31\n987654321004,SER10004,BSNL,50,2027-12-31",
+  "importedBy": "ADMIN_USER"
+}
+```
+
+Expected:
+
+* Valid rows are imported.
+* Invalid rows are reported.
+* Duplicate cards are rejected.
+* Import summary is returned.
+* Import batch is stored.
 
 ---
 
-## 4. Direct Mock Provider Testing (Port 5081)
+### Test 11 — Card Inventory
 
-- **Rules Endpoint (Public)**: `GET http://localhost:5081/api/provider/recharge/rules`
-- **Recharge Endpoint**: `POST http://localhost:5081/api/provider/recharge`
-  - Header: `X-Provider-API-Key: telecom-provider-test-key-2026`
-- **Status Endpoint**: `GET http://localhost:5081/api/provider/recharge/status/{referenceId}`
-  - Header: `X-Provider-API-Key: telecom-provider-test-key-2026`
+**GET**
 
+```text
+http://localhost:5080/api/cards/inventory
+```
+
+Header:
+
+```text
+X-API-Key: <main-api-key>
+```
+
+Returns card counts grouped by operator, denomination and status.
+
+---
+
+### Test 12 — Import Batches
+
+**GET**
+
+```text
+http://localhost:5080/api/cards/batches?page=1&pageSize=20
+```
+
+Returns the import batch history.
+
+To view one batch:
+
+```text
+GET /api/cards/batches/{batchId}
+```
+
+---
+
+## 5. Mock Telecom API
+
+The mock provider runs on port `5081`.
+
+### Rules
+
+**GET**
+
+```text
+http://localhost:5081/api/provider/recharge/rules
+```
+
+This shows the test rules configured for the provider.
+
+### Recharge
+
+**POST**
+
+```text
+http://localhost:5081/api/provider/recharge
+```
+
+Header:
+
+```text
+X-Provider-API-Key: <provider-api-key>
+```
+
+### Provider Status
+
+**GET**
+
+```text
+http://localhost:5081/api/provider/recharge/status/{referenceId}
+```
+
+Header:
+
+```text
+X-Provider-API-Key: <provider-api-key>
+```
+
+This endpoint is used to check the final provider status, especially after a timeout.
+
+---
+
+## 6. Main Scenarios to Verify
+
+Before submitting the project, verify these scenarios:
+
+| Scenario                     | Expected Result                |
+| ---------------------------- | ------------------------------ |
+| Successful recharge          | `SUCCESS`                      |
+| Failed provider request      | `FAILED`                       |
+| Provider timeout             | `PENDING`, then reconciliation |
+| Provider HTTP 500            | Handled safely                 |
+| Invalid mobile               | `400`                          |
+| Invalid amount               | `400`                          |
+| Unsupported operator         | `400`                          |
+| Invalid API key              | `401`                          |
+| Duplicate transaction        | No second recharge             |
+| Concurrent duplicate request | Only one provider request      |
+| CSV import                   | Valid rows imported            |
+| Duplicate card               | Rejected                       |
+| Expired card                 | Cannot be used                 |
+| Concurrent card usage        | Only one request succeeds      |
+
+## 7. Test Evidence
+
+Postman screenshots for the main scenarios are kept in the project documentation.
+
+The important scenarios to capture are:
+
+* Successful recharge
+* Failed recharge
+* Provider timeout
+* Duplicate transaction
+* Invalid request
+* Authentication failure
+* CSV import
+* Provider status enquiry
+
+Use screenshots only as evidence of tests that were actually run.
